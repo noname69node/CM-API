@@ -3,9 +3,5 @@
         "src"
     ],
     "ext": "ts,json",
-    "ignore": [
-        "src/**/*.test.ts",
-        "node_modules"
-    ],
-    "exec": "ts-node src/server.ts"
+    "exec": "ts-node ./src/server.ts"
 }

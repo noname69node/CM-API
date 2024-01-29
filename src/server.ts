@@ -1,27 +1,7 @@
-import express, { NextFunction, Request, Response } from 'express'
-import cors from 'cors'
-import dotenv from 'dotenv'
+import App from './app'
+import 'dotenv/config'
 
-dotenv.config()
+const PORT = process.env.PORT || 3001
 
-const app = express()
-
-app.use(cors())
-
-// API Routes
-app.use('/api', (req, res) => {
-  res.send('Hello from API')
-})
-
-// Error handling middleware
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  // Handle errors
-})
-
-// Start the server
-const PORT = process.env.PORT || 5000
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`)
-})
-
-export default app
+const app = new App()
+app.startServer(PORT)
