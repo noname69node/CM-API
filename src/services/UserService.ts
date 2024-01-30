@@ -275,6 +275,8 @@ export class UserService {
     }
   }
 
+  public async unDeleteUserById(userIds: number | number[]): Promise<void> {}
+
   /**
    * Checks if a username already exists in the system.
    *
