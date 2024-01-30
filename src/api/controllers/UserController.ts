@@ -28,6 +28,12 @@ export class UserController {
     res.status(200).json(user)
   })
 
+  public getUserByIdWithProfile = asyncWrapper(async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.userId) // Assuming 'id' is the URL parameter
+    const userWithProfile = await this.userService.getUserByIdWithProfile(userId)
+    res.status(200).json(userWithProfile)
+  })
+
   public updateUserById = asyncWrapper(async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId)
     const updateData = req.body
@@ -49,12 +55,24 @@ export class UserController {
     })
   })
 
+  public softDeleteUserByIds = asyncWrapper(async (req: Request, res: Response) => {
+    const ids = req.body.ids
+    await this.userService.softDeleteUserById(ids)
+    res.status(200).json({
+      status: 'success',
+      statusCode: 200,
+      message: 'User soft deleted successfully.',
+      user: {
+        id: ids,
+        deletedAt: Date.now()
+      }
+    })
+  })
+
   public deleteUserById = asyncWrapper(async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId)
     await this.userService.deleteUserById(userId)
     res.status(200).json({
-      status: 'success',
-      statusCode: 200,
       message: 'User deleted successfully.'
     })
   })
