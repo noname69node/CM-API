@@ -11,40 +11,52 @@ export class UserController {
     this.userService = userService
   }
 
-  createUser = asyncWrapper(async (req: Request, res: Response) => {
+  public createUser = asyncWrapper(async (req: Request, res: Response) => {
     const user: User = req.body
     const newUser = await this.userService.createUser(user)
     res.status(201).json(newUser)
   })
 
-  getAllUsers = asyncWrapper(async (req: Request, res: Response) => {
+  public getAllUsers = asyncWrapper(async (req: Request, res: Response) => {
     const users = await this.userService.getAllUsers()
     res.json(users)
   })
 
-  getUserById = asyncWrapper(async (req: Request, res: Response) => {
+  public getUserById = asyncWrapper(async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId) // Assuming 'id' is the URL parameter
     const user = await this.userService.getUserById(userId)
     res.status(200).json(user)
   })
 
-  updateUserById = asyncWrapper(async (req: Request, res: Response) => {
+  public updateUserById = asyncWrapper(async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId)
     const updateData = req.body
     const updatedUser = await this.userService.updateUserById(userId, updateData)
     res.status(200).json(updatedUser)
   })
 
-  softDeleteUserById = asyncWrapper(async (req: Request, res: Response) => {
+  public softDeleteUserById = asyncWrapper(async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId)
-    const softDeletedUser = await this.userService.softDeleteUserById(userId)
-    res.status(200).json(softDeletedUser)
+    await this.userService.softDeleteUserById(userId)
+    res.status(200).json({
+      status: 'success',
+      statusCode: 200,
+      message: 'User soft deleted successfully.',
+      user: {
+        id: userId,
+        deletedAt: Date.now()
+      }
+    })
   })
 
-  deleteUserById = asyncWrapper(async (req: Request, res: Response) => {
+  public deleteUserById = asyncWrapper(async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId)
-    const deletedUser = await this.userService.deleteUserById(userId)
-    res.status(200).json(deletedUser)
+    await this.userService.deleteUserById(userId)
+    res.status(200).json({
+      status: 'success',
+      statusCode: 200,
+      message: 'User deleted successfully.'
+    })
   })
 
   public checkUsernameExistence = asyncWrapper(async (req: Request, res: Response) => {

@@ -7,7 +7,7 @@ PostgresDatabase.initialize('postgresql://postgresadmin:secret@postgres:5432/myd
 // Extend the Model class with UserAttributes and any potential creation attributes
 class User extends Model {
   public id?: number
-  public username!: string // Added username
+  public username!: string
   public email!: string
   public password!: string
   public fullName?: string
