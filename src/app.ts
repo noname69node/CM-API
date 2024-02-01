@@ -3,7 +3,12 @@ import cors from 'cors'
 import apiRouter from './api/routes'
 import { CustomError } from './utils/errors/CustomError'
 import PostgresDatabase from './db/PostgresDatabase'
+import { ValidationError } from 'sequelize'
 
+interface ICustomError extends Error {
+  statusCode: number
+  // Define other common properties here, e.g., details, errorCode, etc.
+}
 class App {
   public app: Express
 
@@ -15,16 +20,9 @@ class App {
     this.setErrorHandler()
   }
 
-  private initDatabases(): void {
-    try {
-      PostgresDatabase.initialize('postgresql://postgresadmin:secret@postgres:5432/mydatabase')
-    } catch (error) {
-      console.error('Failed to initialize database:', error)
-      process.exit(1)
-    }
-
-    // const db = new PostgresDatabase()
-    // db.sequelize?.sync()
+  private async initDatabases(): Promise<void> {
+    const db = PostgresDatabase.getInstance()
+    await db.initialize()
   }
 
   private setMiddleware(): void {
@@ -41,10 +39,13 @@ class App {
   }
 
   private setErrorHandler(): void {
-    this.app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {
+    this.app.use((err: ICustomError, req: Request, res: Response, next: NextFunction) => {
       // console.log('Error', err)
 
       const statusCode = err.statusCode || 500
+
+      console.log('Validation:', err instanceof ValidationError)
+      console.log('Custom:', err instanceof CustomError)
 
       res.status(statusCode).json({
         status: 'error',

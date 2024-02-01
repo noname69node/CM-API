@@ -1,31 +1,40 @@
-import { Sequelize } from 'sequelize'
+import { Sequelize } from 'sequelize-typescript'
+import path from 'path'
 
 class PostgresDatabase {
   private static instance: PostgresDatabase
   public sequelize: Sequelize
 
-  constructor(connectionString: string) {
-    this.sequelize = new Sequelize(connectionString, {
+  private constructor() {
+    this.sequelize = new Sequelize({
       dialect: 'postgres',
-      logging: false
+      host: 'postgres',
+      database: process.env.DB_NAME,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      models: [path.resolve(__dirname, '../api/models')]
     })
-    this.testConnection()
-  }
-
-  public static initialize(connectionString: string): void {
-    if (!PostgresDatabase.instance) {
-      PostgresDatabase.instance = new PostgresDatabase(connectionString)
-    }
+    //this.sequelize.sync({ force: true })
   }
 
   public static getInstance(): PostgresDatabase {
     if (!PostgresDatabase.instance) {
-      throw new Error('PostgresDatabase has not been initialized.')
+      PostgresDatabase.instance = new PostgresDatabase()
     }
+
     return PostgresDatabase.instance
   }
 
-  private async testConnection(): Promise<void> {
+  public async initialize(): Promise<void> {
+    try {
+      await this.sequelize.authenticate()
+      console.log('Connection to PostgreSQL has been established successfully.')
+    } catch (error) {
+      console.error('Unable to connect to PostgreSQL:', error)
+    }
+  }
+
+  public async testConnection(): Promise<void> {
     try {
       await this.sequelize.authenticate()
       console.log('TEST: Connection to PostgreSQL has been established successfully.')

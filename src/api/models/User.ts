@@ -1,88 +1,74 @@
-import { DataTypes, Model } from 'sequelize'
-import PostgresDatabase from '../../db/PostgresDatabase'
-import bcrypt from 'bcrypt'
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  IsEmail,
+  Length,
+  IsDate,
+  Default,
+  AllowNull,
+  Is,
+  PrimaryKey,
+  AutoIncrement,
+  Unique,
+  HasOne
+} from 'sequelize-typescript'
+import { UserProfile } from './UserProfile'
 
-PostgresDatabase.initialize('postgresql://postgresadmin:secret@postgres:5432/mydatabase')
+@Table({
+  tableName: 'users',
+  paranoid: true
+})
+export class User extends Model<User> {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number
 
-// Extend the Model class with UserAttributes and any potential creation attributes
-class User extends Model {
-  public id!: number
-  public username!: string
-  public email!: string
-  public password!: string
-  public role!: 'admin' | 'manager' | 'user'
-  public status!: 'active' | 'inactive' | 'suspended'
-  public lastLogin?: Date
+  @Unique
+  @Length({ min: 3, max: 20 })
+  @Is(/^[a-zA-Z]+$/) // Regex for "only letters"
+  @AllowNull(false)
+  @Column(DataType.STRING)
+  username!: string
 
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
-  public readonly deletedAt?: Date
+  @Unique
+  @IsEmail
+  @AllowNull(false)
+  @Column(DataType.STRING)
+  email!: string
+
+  @Length({ min: 8, max: 128 })
+  @AllowNull(false)
+  @Column(DataType.STRING)
+  password!: string
+
+  @Is('role', (value: string) => {
+    if (value !== 'admin' && value !== 'manager' && value !== 'user') {
+      throw new Error('Invalid role.')
+    }
+  })
+  @Default('user')
+  @AllowNull(false)
+  @Column(DataType.ENUM('admin', 'manager', 'user'))
+  role!: 'admin' | 'manager' | 'user'
+
+  @Is('status', (value: string) => {
+    if (value !== 'active' && value !== 'inactive' && value !== 'suspended') {
+      throw new Error('Invalid status.')
+    }
+  })
+  @Default('active')
+  @AllowNull(false)
+  @Column(DataType.ENUM('active', 'inactive', 'suspended'))
+  status!: 'active' | 'inactive' | 'suspended'
+
+  @IsDate
+  @AllowNull(true)
+  @Column(DataType.DATE)
+  lastLogin?: Date
+
+  @HasOne(() => UserProfile)
+  profile!: UserProfile
 }
-
-// Initialize the User model
-User.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
-    },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-      validate: {
-        isEmail: true
-      }
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    role: {
-      type: DataTypes.ENUM,
-      values: ['admin', 'manager', 'user'],
-      allowNull: false,
-      defaultValue: 'user'
-    },
-    status: {
-      type: DataTypes.ENUM,
-      values: ['active', 'inactive', 'suspended'],
-      allowNull: false,
-      defaultValue: 'active'
-    },
-    lastLogin: {
-      type: DataTypes.DATE,
-      allowNull: true
-    }
-  },
-  {
-    sequelize: PostgresDatabase.getInstance().sequelize, // Use the Sequelize instance from your Singleton
-    modelName: 'User',
-    tableName: 'users',
-    paranoid: true,
-    hooks: {
-      async beforeCreate(user) {
-        if (user.password) {
-          user.password = await bcrypt.hash(user.password, 10)
-        }
-      },
-      async beforeUpdate(user) {
-        // Check if the password field is being updated
-        if (user.changed('password')) {
-          user.password = await bcrypt.hash(user.password, 10)
-        }
-      }
-    }
-  }
-)
-
-// User.sync({ force: true })
-User.sync()
-
-export default User

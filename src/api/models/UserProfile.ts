@@ -1,68 +1,59 @@
-import { DataTypes, Model } from 'sequelize'
-import PostgresDatabase from '../../db/PostgresDatabase'
-import User from './User'
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  ForeignKey,
+  BelongsTo,
+  AllowNull,
+  IsDate,
+  IsUrl,
+  PrimaryKey,
+  AutoIncrement
+} from 'sequelize-typescript'
+import { User } from './User' // Adjust the import path as necessary
 
-PostgresDatabase.initialize('postgresql://postgresadmin:secret@postgres:5432/mydatabase')
-
-class UserProfile extends Model {
-  public userId!: number // Foreign Key
-  public fullName?: string
-  public dateOfBirth?: Date
-  public profilePictureUrl?: string
-  public phoneNumber?: string
-  // Address fields can be simple or complex depending on requirements
-  public addressLine1?: string
-  public addressLine2?: string
-  public city?: string
-  public state?: string
-  public postalCode?: string
-  public country?: string
-}
-
-UserProfile.init(
-  {
-    fullName: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    dateOfBirth: {
-      type: DataTypes.DATEONLY,
-      allowNull: false
-    },
-    profilePictureUrl: {
-      type: DataTypes.STRING,
-      allowNull: true
-      // validate: {
-      //   isUrl: true
-      // }
-    },
-    phoneNumber: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    // Define the address fields as needed
-    addressLine1: DataTypes.STRING,
-    addressLine2: DataTypes.STRING,
-    city: DataTypes.STRING,
-    state: DataTypes.STRING,
-    postalCode: DataTypes.STRING,
-    country: DataTypes.STRING
-  },
-  {
-    sequelize: PostgresDatabase.getInstance().sequelize, // Use the Sequelize instance from your Singleton
-    modelName: 'UserProfile',
-    tableName: 'user_profiles',
-    paranoid: true
-  }
-)
-
-User.hasOne(UserProfile, { foreignKey: 'userId', as: 'profile' })
-UserProfile.belongsTo(User, {
-  foreignKey: 'userId',
-  as: 'user'
+@Table({
+  tableName: 'user_profiles',
+  paranoid: true // Enables soft delete (it will use the deletedAt column)
 })
+export class UserProfile extends Model<UserProfile> {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number
 
-// UserProfile.sync({ force: true })
-UserProfile.sync()
+  @ForeignKey(() => User)
+  @Column(DataType.INTEGER)
+  userId!: number
 
-export default UserProfile
+  @AllowNull(false)
+  @Column(DataType.STRING)
+  fullName?: string
+
+  @IsDate
+  @Column(DataType.DATEONLY)
+  dateOfBirth?: Date | null
+
+  @IsUrl
+  @Column(DataType.STRING)
+  profilePictureUrl?: string | null
+
+  @Column(DataType.STRING)
+  phoneNumber?: string | null
+
+  @Column(DataType.STRING)
+  addressLine?: string | null
+
+  @Column(DataType.STRING)
+  city?: string | null
+
+  @Column(DataType.STRING)
+  postalCode?: string | null
+
+  @Column(DataType.STRING)
+  country?: string | null
+
+  @BelongsTo(() => User)
+  user!: User
+}
